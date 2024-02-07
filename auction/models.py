@@ -3,10 +3,8 @@ from django.contrib.auth import get_user_model
 from datetime import datetime, timedelta
 from django.utils import timezone
 
-from rest_framework.exceptions import ValidationError
-
 MAX_AUCTION_TITLE_LENGTH = 50
-MIN_AUCTION_DURATION = timedelta(minutes=1)
+MIN_AUCTION_DURATION = timedelta(seconds=10)
 
 
 def get_auto_end_time():
@@ -24,11 +22,6 @@ class Auction(models.Model):
     finished = models.BooleanField(default=False)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-
-    def clean(self):
-        duration = self.start_time - self.end_time
-        if duration < MIN_AUCTION_DURATION:
-            raise ValidationError("The duration between start and end of auction must be at least 1 hour.")
 
 
 class Bid(models.Model):

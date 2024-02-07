@@ -21,6 +21,7 @@ class AuctionNotStartedException(APIException):
     status_code = status.HTTP_409_CONFLICT
     default_detail = "Auction is still not started"
 
+
 class AuctionNotActiveException(APIException):
     status_code = status.HTTP_409_CONFLICT
     default_detail = "Auction is inactive"
