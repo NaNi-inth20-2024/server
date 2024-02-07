@@ -23,6 +23,8 @@ INSTALLED_APPS = [
     # Third party
     'rest_framework',
     'rest_framework_simplejwt',
+    'django_apscheduler',
+
 
     # Own apps
     'auction',
@@ -71,21 +73,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'charityAuctionProject.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": CONFIG['DB_NAME'],
-            "USER": CONFIG['DB_USER'],
-            "PASSWORD": CONFIG['DB_PASSWORD'],
-            "HOST": CONFIG['DB_HOST'],
-            "PORT": CONFIG['DB_PORT'],
-        }
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": CONFIG['DB_NAME'],
+        "USER": CONFIG['DB_USER'],
+        "PASSWORD": CONFIG['DB_PASSWORD'],
+        "HOST": CONFIG['DB_HOST'],
+        "PORT": CONFIG['DB_PORT'],
     }
-
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
