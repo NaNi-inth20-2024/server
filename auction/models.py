@@ -1,11 +1,16 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 from rest_framework.exceptions import ValidationError
 
 MAX_AUCTION_TITLE_LENGTH = 50
 MIN_AUCTION_DURATION = timedelta(minutes=1)
+
+
+def get_auto_end_time():
+    return timezone.now() + timedelta(days=1)
 
 
 class Auction(models.Model):
@@ -17,8 +22,8 @@ class Auction(models.Model):
     active = models.BooleanField(default=False)
     started = models.BooleanField(default=False)
     finished = models.BooleanField(default=False)
-    start_time = models.DateTimeField(default=datetime.now())
-    end_time = models.DateTimeField(default=datetime.now() + timedelta(days=1))
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
 
     def clean(self):
         duration = self.start_time - self.end_time
