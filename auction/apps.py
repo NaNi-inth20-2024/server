@@ -8,3 +8,4 @@ class AuctionConfig(AppConfig):
     def ready(self):
         from auction.scheduler import scheduler
         scheduler.start()
+
