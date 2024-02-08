@@ -1,8 +1,9 @@
 from django.contrib.auth.models import User
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from charityAuctionProject.permissions import IsAuthorOrReadAndCreateOnly
 
 from auction.helpers.models import get_latest_bid_where_auction_id
 from auction.helpers.validators import auction_validator, bid_validator
@@ -14,7 +15,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
     queryset = Auction.objects.all()
     serializer_class = AuctionSerializer
     validator = auction_validator
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadAndCreateOnly)
 
     @action(detail=True, methods=["PUT"], name="Activate auction")
     def activate(self, request, pk=None):
@@ -24,7 +25,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
         auction.save()
         return Response(self.get_serializer(auction).data)
 
-    @action(detail=True, methods=["PUT"], name="Deactivate auction" "")
+    @action(detail=True, methods=["PUT"], name="Deactivate auction")
     def deactivate(self, request, pk=None):
         auction = self.get_object()
         self.validator.is_not_finished_or_raise(auction)
@@ -41,11 +42,13 @@ class AuctionViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
-        self.validator.is_not_started_or_raise()
+        auction = self.get_object()
+        self.validator.is_not_started_or_raise(auction)
         self.update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        self.validator.is_not_started_or_raise()
+        auction = self.get_object()
+        self.validator.is_not_started_or_raise(auction)
         self.destroy(request, *args, **kwargs)
 
     @action(detail=True, url_path="bids", name="get bids by auction id")
