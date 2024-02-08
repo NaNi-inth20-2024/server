@@ -28,7 +28,7 @@ INSTALLED_APPS = [
 
     # Own apps
     'auction',
-    'auth',
+    'authentication',
 ]
 
 MIDDLEWARE = [
