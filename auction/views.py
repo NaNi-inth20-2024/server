@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from auction.serializers import AuctionSerializer, BidSerializer, UserSerializer
 from auction.helpers.models import get_latest_bid_where_auction_id
@@ -13,6 +14,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
     queryset = Auction.objects.all()
     serializer_class = AuctionSerializer
     validator = auction_validator
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     @action(detail=True, name='Activate auction')
     def activate(self, request, pk=None):
@@ -63,6 +65,7 @@ class BidViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = BidSerializer
     validator = bid_validator
     auction_validator = auction_validator
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
