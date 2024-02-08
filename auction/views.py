@@ -16,7 +16,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
     validator = auction_validator
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
-    @action(detail=True, name="Activate auction")
+    @action(detail=True, methods=["post"], name="Activate auction")
     def activate(self, request, pk=None):
         auction = self.get_object()
         self.validator.is_not_finished_or_raise(auction)
@@ -24,7 +24,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
         auction.save()
         return Response(self.get_serializer(auction).data)
 
-    @action(detail=True, name="Deactivate auction" "")
+    @action(detail=True, methods=["post"], name="Deactivate auction" "")
     def deactivate(self, request, pk=None):
         auction = self.get_object()
         self.validator.is_not_finished_or_raise(auction)
