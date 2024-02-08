@@ -90,8 +90,3 @@ class BidViewSet(viewsets.ReadOnlyModelViewSet):
         self.validator.is_great_then_gap_or_raise(auction, price_gap)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
