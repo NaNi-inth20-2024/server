@@ -7,7 +7,5 @@ router.register(r'auctions', AuctionViewSet, basename='auction')
 router.register(r'bids', BidViewSet, basename='bid')
 router.register(r'users', UserViewSet, basename='user')
 
-urlpatterns = [
-    path('', include(router.urls)),
-]
+urlpatterns = router.urls
 
