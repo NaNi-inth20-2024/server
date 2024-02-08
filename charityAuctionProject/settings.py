@@ -15,6 +15,8 @@ SECRET_KEY = CONFIG["DJANGO_SECRET_KEY"]
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+
     # Default django apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -22,14 +24,20 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
     # Third party
     "rest_framework",
     "rest_framework_simplejwt",
     "django_apscheduler",
+
     # Own apps
-    "auction",
-    "authentication",
+    'auction',
+    'authentication',
+    'channels'
 ]
+
+# WSGI_APPLICATION = "charityAuctionProject.wsgi.application"
+ASGI_APPLICATION = 'charityAuctionProject.asgi.application'
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -72,7 +80,6 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "charityAuctionProject.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -116,7 +123,6 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
 # This scheduler config will:
 # - Store jobs in the project database
 # - Execute jobs in threads inside the application process
@@ -125,7 +131,6 @@ SCHEDULER_CONFIG = {
     "apscheduler.executors.processpool": {"type": "threadpool"},
 }
 SCHEDULER_AUTOSTART = True
-
 
 # Internationalization
 LANGUAGE_CODE = "en-us"
