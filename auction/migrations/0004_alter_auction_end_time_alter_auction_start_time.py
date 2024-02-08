@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('auction', '0003_alter_bid_options_remove_auction_initial_bid_and_more'),
+        ("auction", "0003_alter_bid_options_remove_auction_initial_bid_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='auction',
-            name='end_time',
+            model_name="auction",
+            name="end_time",
             field=models.DateTimeField(),
         ),
         migrations.AlterField(
-            model_name='auction',
-            name='start_time',
+            model_name="auction",
+            name="start_time",
             field=models.DateTimeField(),
         ),
     ]

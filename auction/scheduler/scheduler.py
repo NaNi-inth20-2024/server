@@ -14,7 +14,7 @@ def handle_auctions():
 
         auction.started = True
         auction.save()
-        print(f'{auction.title} is started')
+        print(f"{auction.title} is started")
 
     auctions_to_finish = Auction.objects.filter(finished=False, started=True)
     for auction in auctions_to_finish:
@@ -24,12 +24,11 @@ def handle_auctions():
         auction.finished = True
         auction.active = False
         auction.save()
-        print(f'{auction.title} is ended up')
-
+        print(f"{auction.title} is ended up")
 
 
 def start():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(handle_auctions, IntervalTrigger(seconds=1), name='Start and finish auctions', jobstore='default')
+    scheduler.add_job(handle_auctions, IntervalTrigger(seconds=1), name="Start and finish auctions", jobstore="default")
     scheduler.start()
     print("Scheduler started...")

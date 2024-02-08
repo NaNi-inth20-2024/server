@@ -1,13 +1,13 @@
 from django.contrib.auth.models import User
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
 
-from auction.serializers import AuctionSerializer, BidSerializer, UserSerializer
 from auction.helpers.models import get_latest_bid_where_auction_id
-from auction.models import Bid, Auction
 from auction.helpers.validators import auction_validator, bid_validator
+from auction.models import Auction, Bid
+from auction.serializers import AuctionSerializer, BidSerializer, UserSerializer
 
 
 class AuctionViewSet(viewsets.ModelViewSet):
@@ -16,7 +16,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
     validator = auction_validator
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
-    @action(detail=True, name='Activate auction')
+    @action(detail=True, name="Activate auction")
     def activate(self, request, pk=None):
         auction = self.get_object()
         self.validator.is_not_finished_or_raise(auction)
@@ -24,7 +24,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
         auction.save()
         return Response(self.get_serializer(auction).data)
 
-    @action(detail=True, name='Deactivate auction''')
+    @action(detail=True, name="Deactivate auction" "")
     def deactivate(self, request, pk=None):
         auction = self.get_object()
         self.validator.is_not_finished_or_raise(auction)
@@ -32,11 +32,11 @@ class AuctionViewSet(viewsets.ModelViewSet):
         auction.save()
         return Response(self.get_serializer(auction).data)
 
-    @action(detail=True, name='Winner bid of auction', url_path='winner')
+    @action(detail=True, name="Winner bid of auction", url_path="winner")
     def get_winner_bid(self, request, pk=None):
         auction = self.get_object()
         self.validator.is_finished_or_raise(auction)
-        winner_bid = get_latest_bid_where_auction_id(auction.id, 'price')
+        winner_bid = get_latest_bid_where_auction_id(auction.id, "price")
         serializer = BidSerializer(winner_bid)
         return Response(serializer.data)
 
@@ -48,7 +48,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
         self.validator.is_not_started_or_raise()
         self.destroy(request, *args, **kwargs)
 
-    @action(detail=True, url_path='bids', name='get bids by auction id')
+    @action(detail=True, url_path="bids", name="get bids by auction id")
     def get_bids(self, request, pk):
         bids = Bid.objects.filter(auction_id=pk)
         page = self.paginate_queryset(bids)
@@ -71,15 +71,15 @@ class BidViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        auction_id = request.data['auction']
+        auction_id = request.data["auction"]
         auction = Auction.objects.get(pk=auction_id)
         self.auction_validator.is_valid_or_raise(auction)
 
         bid = serializer.validated_data
-        price = bid['price']
+        price = bid["price"]
         self.validator.is_price_more_then_initial(auction, price)
 
-        latest_bid = get_latest_bid_where_auction_id(auction_id, 'price')
+        latest_bid = get_latest_bid_where_auction_id(auction_id, "price")
         latest_price = latest_bid.price if latest_bid else 0
         self.validator.is_price_greater_than_latest(latest_price, price)
 

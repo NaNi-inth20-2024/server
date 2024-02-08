@@ -1,6 +1,7 @@
-from django.db import models
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
-from datetime import datetime, timedelta
+from django.db import models
 from django.utils import timezone
 
 MAX_AUCTION_TITLE_LENGTH = 50
@@ -36,4 +37,4 @@ class Bid(models.Model):
 
 class AuctionPhoto(models.Model):
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE)
-    photo = models.ImageField(upload_to='auction_photos/')
+    photo = models.ImageField(upload_to="auction_photos/")
