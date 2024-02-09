@@ -6,7 +6,7 @@ from auction.views import AuctionViewSet, BidViewSet, AuctionPhotoViewSet
 router = DefaultRouter()
 router.register(r"auctions", AuctionViewSet, basename="auction")
 router.register(r"bids", BidViewSet, basename="bid")
-router.register("auctions/images", AuctionPhotoViewSet, basename="auction-image")
+router.register("auction-photos", AuctionPhotoViewSet, basename="auction-image")
 
 urlpatterns = [
     path('', include(router.urls)),
