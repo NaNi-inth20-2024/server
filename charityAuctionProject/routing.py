@@ -7,6 +7,4 @@ websocket_urlpatterns = [
     re_path(r'api/v1/ws', router),
 ]
 
-router = URLRouter(
-    websocket_urlpatterns
-)
+router = URLRouter(websocket_urlpatterns)

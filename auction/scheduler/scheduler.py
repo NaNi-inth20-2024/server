@@ -43,13 +43,7 @@ def handle_auctions():
 def close_auction_group(auction):
     auction_group_name = get_group_name(auction.id)
     channel_layer = get_channel_layer()
-    return channel_layer.group_send(
-        auction_group_name,
-        {
-            "type": "close_channel",
-            'mess': "finish"
-        }
-    )
+    return channel_layer.group_send(auction_group_name, {"type": "close_channel", "mess": "finish"})
 
 
 def start():

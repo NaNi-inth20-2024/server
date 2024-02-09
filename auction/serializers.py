@@ -1,8 +1,14 @@
+import logging
+
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from auction.models import MIN_AUCTION_DURATION, Auction, Bid
+from auction.exceptions import AuctionFinishedException, AuctionRunningException
+from auction.helpers.validators import auction_validator
+from auction.models import MIN_AUCTION_DURATION, Auction, AuctionPhoto, Bid
+
+_logger = logging.getLogger(__name__)
 
 
 class AuctionSerializer(serializers.ModelSerializer):
@@ -10,6 +16,7 @@ class AuctionSerializer(serializers.ModelSerializer):
     Auction serializer class.
     Validates start and finish time to not be the same.
     """
+
     class Meta:
         model = Auction
         fields = [
@@ -69,6 +76,44 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "email"]
 
 
+class AuctionPhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AuctionPhoto
+        fields = "__all__"
+
+    def update(self, instance: AuctionPhoto, validated_data):
+        """
+        Updates the photo if the related auction is not running or finished.
+        :param instance:
+        :param validated_data:
+        :return:
+        :raises AuctionFinishedException: Cannot update photo for a finished auction
+        :raises AuctionRunningException: Cannot update photo for a running auction
+        """
+        auction = instance.auction
+        try:
+            auction_validator.is_not_started_or_raise(auction)
+        except (AuctionFinishedException, AuctionRunningException) as e:
+            raise serializers.ValidationError(str(e))
+        return super(AuctionPhotoSerializer, self).update(instance, validated_data)
+
+    def save(self, **kwargs):
+        """
+        Creates the photo if the related auction is not running or finished
+        :param kwargs:
+        :return:
+        :raises AuctionFinishedException: Cannot update photo for a finished auction
+        :raises AuctionRunningException: Cannot update photo for a running auction
+        """
+
+        try:
+            auction = self.validated_data.get("auction")
+            auction_validator.is_not_started_or_raise(auction)
+        except (AuctionFinishedException, AuctionRunningException) as e:
+            raise serializers.ValidationError(str(e))
+        super(AuctionPhotoSerializer, self).save(**kwargs)
+
+
 class BidSerializer(serializers.ModelSerializer):
     author = UserSerializer(many=False, read_only=True)
     author_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
@@ -79,6 +124,6 @@ class BidSerializer(serializers.ModelSerializer):
         read_only_fields = ["created", "won"]
 
     def create(self, validated_data):
-        author = validated_data.pop('author_id')
+        author = validated_data.pop("author_id")
         bid = Bid.objects.create(author=author, **validated_data)
         return bid

@@ -4,9 +4,9 @@ from django.core.paginator import Paginator
 
 from auction.helpers.models import get_latest_bid_where_auction_id_async
 from auction.helpers.pagination import create_paginated_dict
-from auction.models import Bid, Auction
-from auction.serializers import BidSerializer
 from auction.helpers.validators import auction_validator, bid_validator
+from auction.models import Auction, Bid
+from auction.serializers import BidSerializer
 
 
 class AsyncAuctionService:

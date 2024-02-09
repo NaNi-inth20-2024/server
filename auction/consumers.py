@@ -13,12 +13,12 @@ from auction.models import Auction
 from auction.serializers import BidSerializer
 from auction.service import async_auction_service
 
-DEFAULT_LIMIT = settings.REST_FRAMEWORK.get('PAGE_SIZE', 10)
+DEFAULT_LIMIT = settings.REST_FRAMEWORK.get("PAGE_SIZE", 10)
 AUCTION_GROUP_CLOSE_CODE = 3333
 
 
 def get_group_name(auction_id):
-    return 'auction_%s' % auction_id
+    return "auction_%s" % auction_id
 
 
 class AuctionConsumer(AsyncWebsocketConsumer):
@@ -31,7 +31,6 @@ class AuctionConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
         try:
-            await self.validate_permission()
             self.auction_id = self.scope['url_route']['kwargs']["auction_id"]
             await self.auction_service.get_valid_auction(self.auction_id)
             self.auction_group_name = get_group_name(self.auction_id)
@@ -39,11 +38,7 @@ class AuctionConsumer(AsyncWebsocketConsumer):
             limit = int(query_params.get('limit', [DEFAULT_LIMIT])[0])
             offset = int(query_params.get('offset', [0])[0])
 
-            await self.channel_layer.group_add(
-                self.auction_group_name,
-                self.channel_name
-            )
-
+            await self.channel_layer.group_add(self.auction_group_name, self.channel_name)
             await self.accept()
             url = f"ws:/{self.scope['path']}"
             bids = await self.auction_service.get_bids(self.auction_id, limit, offset, url)
@@ -67,14 +62,10 @@ class AuctionConsumer(AsyncWebsocketConsumer):
             return
         try:
             data = json.loads(text_data)
-            data['auction'] = self.auction_id
+            data["auction"] = self.auction_id
             bid = await self.auction_service.make_bid(data)
             await self.channel_layer.group_send(
-                self.auction_group_name,
-                {
-                    'type': 'send_new_bid',
-                    'bid': json.dumps(BidSerializer(bid).data)
-                }
+                self.auction_group_name, {"type": "send_new_bid", "bid": json.dumps(BidSerializer(bid).data)}
             )
         except JSONDecodeError as e:
             await self.send(text_data=json.dumps({"detail": e.msg}))
@@ -93,7 +84,6 @@ class AuctionConsumer(AsyncWebsocketConsumer):
             await self.close(AUCTION_GROUP_CLOSE_CODE)
         except APIException as e:
             await self.send(text_data=api_exception_to_json(e))
-
 
     async def has_permission_to_connect(self):
         try:

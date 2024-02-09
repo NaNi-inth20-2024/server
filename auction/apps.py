@@ -9,6 +9,7 @@ class AuctionConfig(AppConfig):
     """
     Class that contains the config of the application as well as starts the scheduler for tracking auctions.
     """
+
     default_auto_field = "django.db.models.BigAutoField"
     name = "auction"
 
