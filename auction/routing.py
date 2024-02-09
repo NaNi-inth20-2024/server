@@ -1,8 +1,10 @@
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
-from django.urls import re_path, path
+from django.urls import re_path, path, include
 from auction import consumers
 
 websocket_urlpatterns = [
-    path(r'ws/chat/', consumers.ChatConsumer.as_asgi()),
+    re_path(r'ws/auctions/(?P<auction_id>\d+)/bids/$', consumers.AuctionConsumer.as_asgi()),
 ]
+
+router = URLRouter(websocket_urlpatterns)

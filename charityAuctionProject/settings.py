@@ -39,6 +39,18 @@ INSTALLED_APPS = [
 # WSGI_APPLICATION = "charityAuctionProject.wsgi.application"
 ASGI_APPLICATION = 'charityAuctionProject.asgi.application'
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer'
+    }
+    # 'default': {
+    #     'BACKEND': 'channels_reddis.core.RedisChannelLayer',
+    #     'CONFIG': {
+    #         "hosts": ["127.0.0.1", '6379']
+    #     }
+    # }
+}
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
