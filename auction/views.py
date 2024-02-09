@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, IsAdminUser
@@ -23,11 +24,18 @@ class AuctionViewSet(viewsets.ModelViewSet):
         get_winner_bid: Get winner of the auction
         get_bids: Get bids of the auction
     """
+
     queryset = Auction.objects.all()
     serializer_class = AuctionSerializer
     validator = auction_validator
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadAndCreateOnly)
 
+    @extend_schema(
+        responses={
+            200: AuctionSerializer(),
+            409: "Conflict: Trying to update state of the instance while it is already started or finished."
+        },
+    )
     @action(detail=True, methods=["PUT"], name="Activate auction")
     def activate(self, request, pk=None):
         auction = self.get_object()
@@ -36,6 +44,12 @@ class AuctionViewSet(viewsets.ModelViewSet):
         auction.save()
         return Response(self.get_serializer(auction).data)
 
+    @extend_schema(
+        responses={
+            200: AuctionSerializer(),
+            409: "Conflict: Trying to update state of the instance while it is already started or finished."
+        },
+    )
     @action(detail=True, methods=["PUT"], name="Deactivate auction")
     def deactivate(self, request, pk=None):
         auction = self.get_object()
@@ -52,6 +66,12 @@ class AuctionViewSet(viewsets.ModelViewSet):
         serializer = BidSerializer(winner_bid)
         return Response(serializer.data)
 
+    @extend_schema(
+        responses={
+            200: AuctionSerializer(),
+            409: "Conflict: Trying to update state of the instance while it is already started or finished."
+        },
+    )
     def update(self, request, *args, **kwargs):
         auction = self.get_object()
         self.validator.is_not_started_or_raise(auction)
