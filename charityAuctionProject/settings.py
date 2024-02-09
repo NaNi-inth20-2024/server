@@ -1,8 +1,9 @@
+import os
 from pathlib import Path
 
 from dotenv import dotenv_values
 
-from .settings_local import ALLOWED_HOSTS, DEBUG
+from .settings_local import DEBUG
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,6 +12,39 @@ CONFIG = dotenv_values(BASE_DIR / ".env")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = CONFIG["DJANGO_SECRET_KEY"]
+
+DOMAIN = CONFIG["DOMAIN"]
+SERVER_IP = CONFIG["SERVER_IP"]
+SERVER_PORT = CONFIG["SERVER_PORT"]
+
+ALLOWED_HOSTS = [f"{SERVER_IP}"]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    f"http://{SERVER_IP}:{SERVER_PORT}",
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # Application definition
 
@@ -30,6 +64,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "django_apscheduler",
     'drf_spectacular',
+    "corsheaders",
 
     # Own apps
     'auction',
@@ -44,7 +79,7 @@ CHANNEL_LAYERS = {
     # 'default': {
     #     'BACKEND': 'channels.layers.InMemoryChannelLayer'
     # }
-     "default": {
+    "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [(CONFIG["REDIS_HOST"], int(CONFIG["REDIS_PORT"]))],
@@ -94,7 +129,6 @@ TEMPLATES = [
     },
 ]
 
-
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -131,6 +165,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
