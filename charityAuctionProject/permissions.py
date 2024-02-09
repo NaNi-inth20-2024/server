@@ -26,6 +26,7 @@ class IsAuctionAuthorOrReadOnly(permissions.BasePermission):
             return True
 
         if hasattr(obj, 'auction'):
+            print(obj.auction.author, request.user)
             return obj.auction.author == request.user
 
         return False

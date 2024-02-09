@@ -97,7 +97,10 @@ class AuctionPhotoSerializer(serializers.ModelSerializer):
         :raises AuctionRunningException: Cannot update photo for a running auction
         """
         auction = instance.auction
-        auction_validator.is_not_started_or_raise(auction)
+        try:
+            auction_validator.is_not_started_or_raise(auction)
+        except (AuctionFinishedException, AuctionRunningException) as e:
+            raise serializers.ValidationError(str(e))
         return super(AuctionPhotoSerializer, self).update(instance, validated_data)
 
     def save(self, **kwargs):
@@ -111,6 +114,10 @@ class AuctionPhotoSerializer(serializers.ModelSerializer):
         auction_id = self.validated_data.get("auction", 0)
         if auction_id <= 0:
             raise serializers.ValidationError("Auction id was not provided")
-        auction = Auction.objects.get(pk=auction_id)
-        auction_validator.is_not_started_or_raise(auction)
+
+        try:
+            auction = Auction.objects.get(pk=auction_id)
+            auction_validator.is_not_started_or_raise(auction)
+        except (AuctionFinishedException, AuctionRunningException) as e:
+            raise serializers.ValidationError(str(e))
         super(AuctionPhotoSerializer, self).save(**kwargs)

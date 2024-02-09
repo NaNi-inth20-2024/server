@@ -1,4 +1,6 @@
 # SECURITY WARNING: don't run with debug turned on in production!
+from datetime import timedelta
+
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
