@@ -25,3 +25,8 @@ class AuctionNotStartedException(APIException):
 class AuctionNotActiveException(APIException):
     status_code = status.HTTP_409_CONFLICT
     default_detail = "Auction is inactive"
+
+
+class AuctionNotHasWinnerException(APIException):
+    status = status.HTTP_404_NOT_FOUND
+    default_detail = "Auction has no winner"

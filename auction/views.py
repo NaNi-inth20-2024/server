@@ -14,6 +14,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
     queryset = Auction.objects.all()
     serializer_class = AuctionSerializer
     validator = auction_validator
+    bid_validator = bid_validator
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     @action(detail=True, name="Activate auction")
@@ -36,7 +37,8 @@ class AuctionViewSet(viewsets.ModelViewSet):
     def get_winner_bid(self, request, pk=None):
         auction = self.get_object()
         self.validator.is_finished_or_raise(auction)
-        winner_bid = get_latest_bid_where_auction_id(auction.id, "price")
+        winner_bid = Bid.objects.filter(auction_id=auction.id, won=True).first()
+        self.bid_validator.is_bid_winner_or_throw(winner_bid)
         serializer = BidSerializer(winner_bid)
         return Response(serializer.data)
 
@@ -50,7 +52,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, url_path="bids", name="get bids by auction id")
     def get_bids(self, request, pk):
-        bids = Bid.objects.filter(auction_id=pk)
+        bids = Bid.objects.filter(auction_id=pk).order_by('-created')
         page = self.paginate_queryset(bids)
         if page is not None:
             serializer = BidSerializer(page, many=True)
@@ -63,30 +65,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
 class BidViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Bid.objects.all()
     serializer_class = BidSerializer
-    validator = bid_validator
-    auction_validator = auction_validator
     permission_classes = (IsAuthenticatedOrReadOnly,)
-
-    def create(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        auction_id = request.data["auction"]
-        auction = Auction.objects.get(pk=auction_id)
-        self.auction_validator.is_valid_or_raise(auction)
-
-        bid = serializer.validated_data
-        price = bid["price"]
-        self.validator.is_price_more_then_initial(auction, price)
-
-        latest_bid = get_latest_bid_where_auction_id(auction_id, "price")
-        latest_price = latest_bid.price if latest_bid else 0
-        self.validator.is_price_greater_than_latest(latest_price, price)
-
-        price_gap = price - latest_price
-        self.validator.is_great_then_gap_or_raise(auction, price_gap)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):

@@ -44,8 +44,11 @@ class AsyncAuctionService:
     async def get_winner(self, auction_id):
         auction = await self.get_auction(auction_id)
         self.auction_validator.is_finished_or_raise(auction)
-        return await get_latest_bid_where_auction_id_async(auction.id, "price")
-
+        winner_bid = await database_sync_to_async(
+            lambda a_id, won: Bid.objects.filter(auction_id=a_id, won=won).first())(
+            auction.id, True)
+        self.bid_validator.is_bid_winner_or_throw(winner_bid)
+        return winner_bid
 
 
 async_auction_service = AsyncAuctionService()

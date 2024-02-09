@@ -2,7 +2,6 @@ import json
 from json import JSONDecodeError
 from urllib.parse import parse_qs
 
-from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
@@ -69,7 +68,7 @@ class AuctionConsumer(AsyncWebsocketConsumer):
                 self.auction_group_name,
                 {
                     'type': 'send_new_bid',
-                    'bid': bid
+                    'bid': json.dumps(BidSerializer(bid).data)
                 }
             )
         except JSONDecodeError as e:
@@ -79,11 +78,14 @@ class AuctionConsumer(AsyncWebsocketConsumer):
 
     def send_new_bid(self, event):
         bid = event["bid"]
-        return self.send(text_data=json.dumps(BidSerializer(bid).data))
+        return self.send(text_data=bid)
 
     async def close_channel(self, event):
-        print("close")
-        winner = await self.auction_service.get_winner(self.auction_id)
-        winner = await database_sync_to_async(lambda: BidSerializer(winner).data)()
-        await self.send(text_data=json.dumps(winner))
-        await self.close(AUCTION_GROUP_CLOSE_CODE)
+        try:
+            print("close")
+            winner = await self.auction_service.get_winner(self.auction_id)
+            winner = await database_sync_to_async(lambda: BidSerializer(winner).data)()
+            await self.send(text_data=json.dumps(winner))
+            await self.close(AUCTION_GROUP_CLOSE_CODE)
+        except APIException as e:
+            await self.send(text_data=api_exception_to_json(e))
