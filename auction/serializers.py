@@ -2,7 +2,13 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from auction.models import MIN_AUCTION_DURATION, Auction, Bid
+from auction.models import MIN_AUCTION_DURATION, Auction, Bid, AuctionPhoto
+from auction.helpers.validators import auction_validator
+from auction.exceptions import AuctionFinishedException, AuctionRunningException
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class AuctionSerializer(serializers.ModelSerializer):
@@ -74,3 +80,37 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "email"]
+
+
+class AuctionPhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AuctionPhoto
+        fields = '__all__'
+
+    def update(self, instance: AuctionPhoto, validated_data):
+        """
+        Updates the photo if the related auction is not running or finished.
+        :param instance:
+        :param validated_data:
+        :return:
+        :raises AuctionFinishedException: Cannot update photo for a finished auction
+        :raises AuctionRunningException: Cannot update photo for a running auction
+        """
+        auction = instance.auction
+        auction_validator.is_not_started_or_raise(auction)
+        return super(AuctionPhotoSerializer, self).update(instance, validated_data)
+
+    def save(self, **kwargs):
+        """
+        Creates the photo if the related auction is not running or finished
+        :param kwargs:
+        :return:
+        :raises AuctionFinishedException: Cannot update photo for a finished auction
+        :raises AuctionRunningException: Cannot update photo for a running auction
+        """
+        auction_id = self.validated_data.get("auction", 0)
+        if auction_id <= 0:
+            raise serializers.ValidationError("Auction id was not provided")
+        auction = Auction.objects.get(pk=auction_id)
+        auction_validator.is_not_started_or_raise(auction)
+        super(AuctionPhotoSerializer, self).save(**kwargs)

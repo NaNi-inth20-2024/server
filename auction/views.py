@@ -4,12 +4,14 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-from charityAuctionProject.permissions import IsAuthorOrReadAndCreateOnly
+from rest_framework.views import APIView
+
+from charityAuctionProject.permissions import IsAuthorOrReadAndCreateOnly, IsAuctionAuthorOrReadOnly
 
 from auction.helpers.models import get_latest_bid_where_auction_id
 from auction.helpers.validators import auction_validator, bid_validator
-from auction.models import Auction, Bid
-from auction.serializers import AuctionSerializer, BidSerializer, UserSerializer
+from auction.models import Auction, Bid, AuctionPhoto
+from auction.serializers import AuctionSerializer, BidSerializer, AuctionPhotoSerializer
 
 
 class AuctionViewSet(viewsets.ModelViewSet):
@@ -125,3 +127,9 @@ class BidViewSet(viewsets.ReadOnlyModelViewSet):
         self.validator.is_great_then_gap_or_raise(auction, price_gap)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class AuctionPhotoViewSet(viewsets.ModelViewSet):
+    queryset = AuctionPhoto.objects.all()
+    serializer_class = AuctionPhotoSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuctionAuthorOrReadOnly]
