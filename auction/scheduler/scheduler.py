@@ -22,7 +22,6 @@ def handle_auctions():
 
         auction.started = True
         auction.save()
-        print(f"{auction.title} is started")
 
     auctions_to_finish = Auction.objects.filter(finished=False, started=True)
     for auction in auctions_to_finish:
@@ -39,7 +38,6 @@ def handle_auctions():
         auction.save()
 
         async_to_sync(close_auction_group)(auction)
-        print(f"Auction \"{auction.title}\" is ended up")
 
 
 def close_auction_group(auction):
