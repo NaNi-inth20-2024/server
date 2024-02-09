@@ -10,6 +10,10 @@ from auction.models import Auction
 
 
 def handle_auctions():
+    """
+    Automatically checks auction instance flags on started and finished auction events.
+    :return:
+    """
     now = timezone.now()
     auctions_to_start = Auction.objects.filter(started=False, finished=False)
     for auction in auctions_to_start:
@@ -51,6 +55,10 @@ def close_auction_group(auction):
 
 
 def start():
+    """
+    Start the scheduler and wait until an auction has started or finished.
+    :return:
+    """
     scheduler = BackgroundScheduler()
     scheduler.add_job(handle_auctions, IntervalTrigger(seconds=1), name="Start and finish auctions", jobstore="default")
     scheduler.start()

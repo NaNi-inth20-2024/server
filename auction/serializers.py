@@ -6,6 +6,10 @@ from auction.models import MIN_AUCTION_DURATION, Auction, Bid
 
 
 class AuctionSerializer(serializers.ModelSerializer):
+    """
+    Auction serializer class.
+    Validates start and finish time to not be the same.
+    """
     class Meta:
         model = Auction
         fields = [
@@ -24,7 +28,10 @@ class AuctionSerializer(serializers.ModelSerializer):
         read_only_fields = ["started", "finished", "id"]
 
     def validate(self, data):
-
+        """
+        Validates start and finish time to not be the same.
+        :param data:
+        """
         start_time = data.get("start_time")
         end_time = data.get("end_time")
         duration = end_time - start_time
@@ -33,6 +40,12 @@ class AuctionSerializer(serializers.ModelSerializer):
         return data
 
     def update(self, instance, validated_data):
+        """
+        Updates the instance only for allowed fields.
+        :param instance:
+        :param validated_data:
+        :return:
+        """
         allowed_fields = ["title", "description", "initial_price", "min_bid_price_gap", "start_time", "end_time"]
         for field in validated_data:
             if field not in allowed_fields:
