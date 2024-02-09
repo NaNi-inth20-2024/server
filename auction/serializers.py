@@ -69,13 +69,6 @@ class AuctionSerializer(serializers.ModelSerializer):
         return instance
 
 
-class BidSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Bid
-        fields = ["id", "price", "author", "auction", "created"]
-        read_only_fields = ["created"]
-
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -121,3 +114,18 @@ class AuctionPhotoSerializer(serializers.ModelSerializer):
         except (AuctionFinishedException, AuctionRunningException) as e:
             raise serializers.ValidationError(str(e))
         super(AuctionPhotoSerializer, self).save(**kwargs)
+
+
+class BidSerializer(serializers.ModelSerializer):
+    author = UserSerializer(many=False, read_only=True)
+    author_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
+
+    class Meta:
+        model = Bid
+        fields = ["id", "price", "author", "author_id", "auction", "won", "created"]
+        read_only_fields = ["created", "won"]
+
+    def create(self, validated_data):
+        author = validated_data.pop('author_id')
+        bid = Bid.objects.create(author=author, **validated_data)
+        return bid

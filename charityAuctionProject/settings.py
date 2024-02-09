@@ -4,7 +4,7 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
-from .settings_local import ALLOWED_HOSTS, DEBUG
+from .settings_local import DEBUG
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -14,9 +14,44 @@ CONFIG = dotenv_values(BASE_DIR / ".env")
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = CONFIG["DJANGO_SECRET_KEY"]
 
+DOMAIN = CONFIG["DOMAIN"]
+SERVER_IP = CONFIG["SERVER_IP"]
+SERVER_PORT = CONFIG["SERVER_PORT"]
+
+ALLOWED_HOSTS = [f"{SERVER_IP}"]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    f"http://{SERVER_IP}:{SERVER_PORT}",
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+
     # Default django apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -24,15 +59,34 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
     # Third party
     "rest_framework",
     "rest_framework_simplejwt",
     "django_apscheduler",
     'drf_spectacular',
+    "corsheaders",
+
     # Own apps
-    "auction",
-    "authentication",
+    'auction',
+    'authentication',
+    'channels'
 ]
+
+# WSGI_APPLICATION = "charityAuctionProject.wsgi.application"
+ASGI_APPLICATION = 'charityAuctionProject.asgi.application'
+
+CHANNEL_LAYERS = {
+    # 'default': {
+    #     'BACKEND': 'channels.layers.InMemoryChannelLayer'
+    # }
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(CONFIG["REDIS_HOST"], int(CONFIG["REDIS_PORT"]))],
+        },
+    },
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -75,8 +129,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = "charityAuctionProject.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -171,6 +223,7 @@ SIMPLE_JWT = {
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Define the URL prefix for media files uploaded by users
 MEDIA_URL = '/media/'
@@ -183,7 +236,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
 # This scheduler config will:
 # - Store jobs in the project database
 # - Execute jobs in threads inside the application process
@@ -192,7 +244,6 @@ SCHEDULER_CONFIG = {
     "apscheduler.executors.processpool": {"type": "threadpool"},
 }
 SCHEDULER_AUTOSTART = True
-
 
 # Internationalization
 LANGUAGE_CODE = "en-us"

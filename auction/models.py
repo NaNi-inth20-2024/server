@@ -18,7 +18,7 @@ class Auction(models.Model):
     initial_price = models.PositiveIntegerField()
     min_bid_price_gap = models.PositiveIntegerField()
     author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    active = models.BooleanField(default=False)
+    active = models.BooleanField(default=True)
     started = models.BooleanField(default=False)
     finished = models.BooleanField(default=False)
     start_time = models.DateTimeField()
@@ -30,6 +30,7 @@ class Bid(models.Model):
     author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
+    won = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["created"]

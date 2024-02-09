@@ -49,6 +49,10 @@ class BidValidator:
         if latest > curr:
             raise BidConflictException("Price of bid is lesser than last one")
 
+    def is_bid_winner_or_throw(self, bid):
+        if bid is None:
+            raise AuctionNotHasWinnerException()
+
 
 auction_validator = AuctionValidator()
 bid_validator = BidValidator()
