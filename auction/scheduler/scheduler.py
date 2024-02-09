@@ -1,7 +1,10 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from asgiref.sync import async_to_sync, sync_to_async
+from channels.db import database_sync_to_async
 from django.utils import timezone
-
+from channels.layers import get_channel_layer
+from auction.consumers import get_group_name
 from auction.models import Auction
 
 
@@ -24,7 +27,23 @@ def handle_auctions():
         auction.finished = True
         auction.active = False
         auction.save()
+        async_to_sync(close_auction_group)(auction)
         print(f"{auction.title} is ended up")
+
+
+def close_auction_group(auction):
+    auction_group_name = get_group_name(auction.id)
+    channel_layer = get_channel_layer()
+    print("============")
+    print(channel_layer)
+    print("Close auction group: " + auction_group_name)
+    return channel_layer.group_send(
+        auction_group_name,
+        {
+            "type": "close_channel",
+            'mess': "finish"
+        }
+    )
 
 
 def start():
