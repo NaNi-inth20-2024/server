@@ -21,6 +21,7 @@ SERVER_PORT = CONFIG["SERVER_PORT"]
 ALLOWED_HOSTS = [
     f"{SERVER_IP}",
     "127.0.0.1",
+    "localhost",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -69,6 +70,7 @@ INSTALLED_APPS = [
     "django_apscheduler",
     'drf_spectacular',
     "corsheaders",
+    "django_filters",
 
     # Own apps
     'auction',
@@ -115,6 +117,7 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
 TEMPLATES = [

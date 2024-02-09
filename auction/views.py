@@ -1,7 +1,10 @@
 from django.contrib.auth.models import User
+from rest_framework.filters import OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,6 +15,7 @@ from auction.helpers.models import get_latest_bid_where_auction_id
 from auction.helpers.validators import auction_validator, bid_validator
 from auction.models import Auction, Bid, AuctionPhoto
 from auction.serializers import AuctionSerializer, BidSerializer, AuctionPhotoSerializer
+from auction.filters import AuctionFilter
 
 
 class AuctionViewSet(viewsets.ModelViewSet):
@@ -32,6 +36,17 @@ class AuctionViewSet(viewsets.ModelViewSet):
     validator = auction_validator
     bid_validator = bid_validator
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadAndCreateOnly)
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    ordering_fields = [
+        'title',
+        'initial_price',
+        'min_bid_price_gap',
+        'start_time',
+        'end_time',
+    ]
+    search_fields = ['title',]
+    filterset_class = AuctionFilter
 
     @extend_schema(
         responses={
