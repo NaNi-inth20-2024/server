@@ -40,15 +40,15 @@ INSTALLED_APPS = [
 ASGI_APPLICATION = 'charityAuctionProject.asgi.application'
 
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer'
-    }
     # 'default': {
-    #     'BACKEND': 'channels_reddis.core.RedisChannelLayer',
-    #     'CONFIG': {
-    #         "hosts": ["127.0.0.1", '6379']
-    #     }
+    #     'BACKEND': 'channels.layers.InMemoryChannelLayer'
     # }
+     "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(CONFIG["REDIS_HOST"], int(CONFIG["REDIS_PORT"]))],
+        },
+    },
 }
 
 MIDDLEWARE = [
