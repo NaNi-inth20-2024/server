@@ -12,6 +12,17 @@ from auction.serializers import AuctionSerializer, BidSerializer, UserSerializer
 
 
 class AuctionViewSet(viewsets.ModelViewSet):
+    """
+    AuctionViewSet provides AuthenticatedOrReadOnly auction permission while restricting PUT/PATCH for non-authors.
+    Auctions cannot be edited while being already started or finished.
+
+    Methods:
+        *CRUD*
+        activate: Activate auction
+        deactivate: Deactivate auction
+        get_winner_bid: Get winner of the auction
+        get_bids: Get bids of the auction
+    """
     queryset = Auction.objects.all()
     serializer_class = AuctionSerializer
     validator = auction_validator
@@ -64,6 +75,10 @@ class AuctionViewSet(viewsets.ModelViewSet):
 
 
 class BidViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint that allows for bid list, view and create.
+    Bids cannot be edited when the auction is already started or finished
+    """
     queryset = Bid.objects.all()
     serializer_class = BidSerializer
     validator = bid_validator
