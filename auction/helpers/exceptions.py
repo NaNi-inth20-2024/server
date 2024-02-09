@@ -10,8 +10,6 @@ def api_exception_to_json(e):
             "status_code": e.status_code,
         }
     else:
-        error = {
-            "detail": e.__str__()
-        }
+        error = {"detail": e.__str__()}
 
     return json.dumps(error)

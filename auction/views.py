@@ -1,21 +1,19 @@
 from django.contrib.auth.models import User
-from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, IsAdminUser
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from charityAuctionProject.permissions import IsAuthorOrReadAndCreateOnly, IsAuctionAuthorOrReadOnly
-
+from auction.filters import AuctionFilter
 from auction.helpers.models import get_latest_bid_where_auction_id
 from auction.helpers.validators import auction_validator, bid_validator
-from auction.models import Auction, Bid, AuctionPhoto
-from auction.serializers import AuctionSerializer, BidSerializer, AuctionPhotoSerializer
-from auction.filters import AuctionFilter
+from auction.models import Auction, AuctionPhoto, Bid
+from auction.serializers import AuctionPhotoSerializer, AuctionSerializer, BidSerializer
+from charityAuctionProject.permissions import IsAuctionAuthorOrReadOnly, IsAuthorOrReadAndCreateOnly
 
 
 class AuctionViewSet(viewsets.ModelViewSet):
@@ -39,19 +37,21 @@ class AuctionViewSet(viewsets.ModelViewSet):
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     ordering_fields = [
-        'title',
-        'initial_price',
-        'min_bid_price_gap',
-        'start_time',
-        'end_time',
+        "title",
+        "initial_price",
+        "min_bid_price_gap",
+        "start_time",
+        "end_time",
     ]
-    search_fields = ['title',]
+    search_fields = [
+        "title",
+    ]
     filterset_class = AuctionFilter
 
     @extend_schema(
         responses={
             200: AuctionSerializer(),
-            409: "Conflict: Trying to update state of the instance while it is already started or finished."
+            409: "Conflict: Trying to update state of the instance while it is already started or finished.",
         },
     )
     @action(detail=True, methods=["PUT"], name="Activate auction")
@@ -65,7 +65,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
     @extend_schema(
         responses={
             200: AuctionSerializer(),
-            409: "Conflict: Trying to update state of the instance while it is already started or finished."
+            409: "Conflict: Trying to update state of the instance while it is already started or finished.",
         },
     )
     @action(detail=True, methods=["PUT"], name="Deactivate auction")
@@ -88,7 +88,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
     @extend_schema(
         responses={
             200: AuctionSerializer(),
-            409: "Conflict: Trying to update state of the instance while it is already started or finished."
+            409: "Conflict: Trying to update state of the instance while it is already started or finished.",
         },
     )
     def update(self, request, *args, **kwargs):
@@ -103,7 +103,7 @@ class AuctionViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, url_path="bids", name="get bids by auction id")
     def get_bids(self, request, pk):
-        bids = Bid.objects.filter(auction_id=pk).order_by('-created')
+        bids = Bid.objects.filter(auction_id=pk).order_by("-created")
         page = self.paginate_queryset(bids)
         if page is not None:
             serializer = BidSerializer(page, many=True)
@@ -118,6 +118,7 @@ class BidViewSet(viewsets.ReadOnlyModelViewSet):
     API endpoint that allows for bid list and view.
     Bids cannot be edited when the auction is already started or finished
     """
+
     queryset = Bid.objects.all()
     serializer_class = BidSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)

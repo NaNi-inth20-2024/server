@@ -4,8 +4,8 @@ from datetime import timedelta
 DEBUG = True
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Charity Auction Project API',
-    'DESCRIPTION': 'Charity Auction Project',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
+    "TITLE": "Charity Auction Project API",
+    "DESCRIPTION": "Charity Auction Project",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }

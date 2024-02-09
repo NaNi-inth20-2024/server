@@ -1,9 +1,9 @@
 from channels.db import database_sync_to_async
 
 from auction.helpers.models import get_latest_bid_where_auction_id_async
-from auction.models import Bid, Auction
-from auction.serializers import BidSerializer
 from auction.helpers.validators import auction_validator, bid_validator
+from auction.models import Auction, Bid
+from auction.serializers import BidSerializer
 
 
 class AsyncAuctionService:
@@ -28,8 +28,8 @@ class AsyncAuctionService:
 
     async def get_bids(self, auction_id, limit, offset):
         bids = await database_sync_to_async(Bid.objects.filter)(auction_id=auction_id)
-        bids = await database_sync_to_async(bids.order_by)('-created')
-        bids = await database_sync_to_async(lambda: bids[offset:offset + limit])()
+        bids = await database_sync_to_async(bids.order_by)("-created")
+        bids = await database_sync_to_async(lambda: bids[offset : offset + limit])()
         serializer = BidSerializer(bids, many=True)
         return await database_sync_to_async(lambda: serializer.data)()
 
@@ -45,8 +45,8 @@ class AsyncAuctionService:
         auction = await self.get_auction(auction_id)
         self.auction_validator.is_finished_or_raise(auction)
         winner_bid = await database_sync_to_async(
-            lambda a_id, won: Bid.objects.filter(auction_id=a_id, won=won).first())(
-            auction.id, True)
+            lambda a_id, won: Bid.objects.filter(auction_id=a_id, won=won).first()
+        )(auction.id, True)
         self.bid_validator.is_bid_winner_or_throw(winner_bid)
         return winner_bid
 

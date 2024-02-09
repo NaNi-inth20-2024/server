@@ -1,12 +1,12 @@
+import logging
+
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from auction.models import MIN_AUCTION_DURATION, Auction, Bid, AuctionPhoto
-from auction.helpers.validators import auction_validator
 from auction.exceptions import AuctionFinishedException, AuctionRunningException
-
-import logging
+from auction.helpers.validators import auction_validator
+from auction.models import MIN_AUCTION_DURATION, Auction, AuctionPhoto, Bid
 
 _logger = logging.getLogger(__name__)
 
@@ -16,6 +16,7 @@ class AuctionSerializer(serializers.ModelSerializer):
     Auction serializer class.
     Validates start and finish time to not be the same.
     """
+
     class Meta:
         model = Auction
         fields = [
@@ -78,7 +79,7 @@ class UserSerializer(serializers.ModelSerializer):
 class AuctionPhotoSerializer(serializers.ModelSerializer):
     class Meta:
         model = AuctionPhoto
-        fields = '__all__'
+        fields = "__all__"
 
     def update(self, instance: AuctionPhoto, validated_data):
         """
@@ -123,6 +124,6 @@ class BidSerializer(serializers.ModelSerializer):
         read_only_fields = ["created", "won"]
 
     def create(self, validated_data):
-        author = validated_data.pop('author_id')
+        author = validated_data.pop("author_id")
         bid = Bid.objects.create(author=author, **validated_data)
         return bid
