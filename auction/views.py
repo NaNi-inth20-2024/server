@@ -1,15 +1,13 @@
-from django.contrib.auth.models import User
 from drf_spectacular.utils import extend_schema
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from charityAuctionProject.permissions import IsAuthorOrReadAndCreateOnly
 
-from auction.helpers.models import get_latest_bid_where_auction_id
 from auction.helpers.validators import auction_validator, bid_validator
 from auction.models import Auction, Bid
-from auction.serializers import AuctionSerializer, BidSerializer, UserSerializer
+from auction.serializers import AuctionSerializer, BidSerializer
+from charityAuctionProject.permissions import IsAuthorOrReadAndCreateOnly
 
 
 class AuctionViewSet(viewsets.ModelViewSet):
