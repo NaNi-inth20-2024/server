@@ -1,8 +1,6 @@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
-
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Charity Auction Project API',
     'DESCRIPTION': 'Charity Auction Project',
