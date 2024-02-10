@@ -31,6 +31,7 @@ class Bid(models.Model):
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     won = models.BooleanField(default=False)
+    leader = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["created"]

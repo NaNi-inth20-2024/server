@@ -63,12 +63,10 @@ class AuctionConsumer(AsyncWebsocketConsumer):
         )
 
     async def receive(self, text_data):
-        author = await self.get_user()
-        if not author:
-            await self.close()
-            return
-
         try:
+            author = await self.get_user()
+            if not author:
+                raise WsAuthException()
             data = json.loads(text_data)
             bid = await self.auction_service.make_bid(data, author, self.auction_id)
             data = await sync_to_async(lambda: BidSerializer(bid).data)()
@@ -79,6 +77,8 @@ class AuctionConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({"detail": e.msg}))
         except APIException as e:
             await self.send(text_data=api_exception_to_json(e))
+            if isinstance(e, WsAuthException):
+                await self.close()
 
     def send_new_bid(self, event):
         bid = event["bid"]
