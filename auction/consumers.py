@@ -80,10 +80,6 @@ class AuctionConsumer(AsyncWebsocketConsumer):
             if isinstance(e, WsAuthException):
                 await self.close()
 
-    def send_new_bid(self, event):
-        bid = event["bid"]
-        return self.send(text_data=bid)
-
     async def close_channel(self, event):
         try:
             winner = await self.auction_service.get_winner(self.auction_id)
@@ -92,3 +88,11 @@ class AuctionConsumer(AsyncWebsocketConsumer):
             await self.close(AUCTION_GROUP_CLOSE_CODE)
         except APIException as e:
             await self.send(text_data=api_exception_to_json(e))
+
+    def send_new_bid(self, event):
+        bid = event["bid"]
+        return self.send(text_data=bid)
+
+    def get_user(self):
+        headers = dict(self.scope.get('headers', []))
+        return self.user_service.get_user(headers)
