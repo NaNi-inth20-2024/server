@@ -12,7 +12,7 @@ from auction.exceptions import WsAuthException
 from auction.helpers.exceptions import api_exception_to_json
 from auction.models import Auction
 from auction.serializers import BidSerializer
-from auction.service import async_auction_service
+from auction.service import async_auction_service, async_user_service
 from authentication.service import auth_service
 
 DEFAULT_LIMIT = settings.REST_FRAMEWORK.get("PAGE_SIZE", 10)
@@ -26,6 +26,7 @@ def get_group_name(auction_id):
 class AuctionConsumer(AsyncWebsocketConsumer):
     auth_service = auth_service
     auction_service = async_auction_service
+    user_service = async_user_service
     auction_group_name = None
     auction_id = None
 
@@ -91,12 +92,3 @@ class AuctionConsumer(AsyncWebsocketConsumer):
             await self.close(AUCTION_GROUP_CLOSE_CODE)
         except APIException as e:
             await self.send(text_data=api_exception_to_json(e))
-
-    def is_authorized(self):
-        headers = dict(self.scope.get('headers', []))
-        authorization_header = headers.get(b'authorization', b'').decode('utf-8')
-        return database_sync_to_async(lambda: self.auth_service.is_valid_token(authorization_header))()
-
-    def get_user(self):
-        headers = dict(self.scope.get('headers', []))
-        return database_sync_to_async(lambda: self.auth_service.token_to_user(headers))()

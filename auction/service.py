@@ -7,6 +7,7 @@ from auction.helpers.pagination import create_paginated_dict
 from auction.helpers.validators import auction_validator, bid_validator
 from auction.models import Auction, Bid
 from auction.serializers import BidSerializer
+from authentication.service import auth_service
 
 
 class AsyncAuctionService:
@@ -62,4 +63,13 @@ class AsyncAuctionService:
         return winner_bid
 
 
+class AsyncUserService:
+    auth_service = auth_service
+
+    @database_sync_to_async
+    def get_user(self, headers):
+        return self.auth_service.token_to_user(headers)
+
+
 async_auction_service = AsyncAuctionService()
+async_user_service = AsyncUserService()
