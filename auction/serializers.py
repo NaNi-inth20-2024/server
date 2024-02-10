@@ -18,11 +18,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class AuctionSerializer(serializers.ModelSerializer):
-    """
-    Auction serializer class.
-    Validates start and finish time to not be the same.
-    """
-
     author = UserSerializer(many=False, read_only=True)
 
     class Meta:
@@ -78,6 +73,11 @@ class AuctionSerializer(serializers.ModelSerializer):
         return instance
 
     def create(self, validated_data):
+        """
+        Method to create auction instance with id from author model
+        :param validated_data:
+        :return:
+        """
         author = validated_data.pop("author")
         bid = Auction.objects.create(author=author, **validated_data)
         return bid
@@ -131,6 +131,11 @@ class BidSerializer(serializers.ModelSerializer):
         read_only_fields = ["created", "won", "leader"]
 
     def create(self, validated_data):
+        """
+        Method to create bid instance with ids from author and auction models
+        :param validated_data:
+        :return:
+        """
         author = validated_data.pop("author")
         auction = validated_data.pop("auction")
         bid = Bid.objects.create(author=author, auction=auction, **validated_data)

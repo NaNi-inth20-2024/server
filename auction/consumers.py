@@ -31,6 +31,9 @@ class AuctionConsumer(AsyncWebsocketConsumer):
     auction_id = None
 
     async def connect(self):
+        """
+        Handles the WebSocket connection request.
+        """
         try:
             if not await self.get_user():
                 raise WsAuthException()
@@ -47,6 +50,9 @@ class AuctionConsumer(AsyncWebsocketConsumer):
             await self.close()
 
     def parse_parameters(self):
+        """
+        Parses the query parameters from the WebSocket URL.
+        """
         self.auction_id = self.scope['url_route']['kwargs']["auction_id"]
         query_params = parse_qs(self.scope['query_string'].decode())
         limit = int(query_params.get('limit', [DEFAULT_LIMIT])[0])
@@ -55,6 +61,9 @@ class AuctionConsumer(AsyncWebsocketConsumer):
         return limit, offset, url
 
     async def disconnect(self, close_code):
+        """
+        Handles the WebSocket disconnection.
+        """
         if self.auction_group_name is None:
             return
         await self.channel_layer.group_discard(
@@ -63,6 +72,9 @@ class AuctionConsumer(AsyncWebsocketConsumer):
         )
 
     async def receive(self, text_data):
+        """
+        Handles the incoming WebSocket message.
+        """
         try:
             author = await self.get_user()
             if not author:
@@ -81,6 +93,9 @@ class AuctionConsumer(AsyncWebsocketConsumer):
                 await self.close()
 
     async def close_channel(self, event):
+        """
+        Closes the WebSocket channel.
+        """
         try:
             winner = await self.auction_service.get_winner(self.auction_id)
             winner = await database_sync_to_async(lambda: BidSerializer(winner).data)()
@@ -90,9 +105,15 @@ class AuctionConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=api_exception_to_json(e))
 
     def send_new_bid(self, event):
+        """
+        Sends a new bid to the WebSocket group.
+        """
         bid = event["bid"]
         return self.send(text_data=bid)
 
     def get_user(self):
+        """
+        Retrieves the user associated with the WebSocket connection.
+        """
         headers = dict(self.scope.get('headers', []))
         return self.user_service.get_user(headers)

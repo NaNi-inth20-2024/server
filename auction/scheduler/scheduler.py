@@ -1,3 +1,7 @@
+"""
+    This module provides functions for managing auction events and WebSocket groups.
+"""
+
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from asgiref.sync import async_to_sync
@@ -12,9 +16,18 @@ from auction.models import Auction
 def handle_auctions():
     """
     Automatically checks auction instance flags on started and finished auction events.
-    :return:
+    This function runs periodically to monitor auction events and take appropriate actions.
+
+    It checks auctions that are scheduled to start or finish based on their start_time and end_time fields.
+    If the current time is after the start_time, it marks the auction as started.
+    If the current time is after the end_time, it marks the auction as finished, determines the winner bid (if any),
+    and closes the associated auction group.
+
+    :return: None
     """
     now = timezone.now()
+
+    # Check auctions scheduled to start
     auctions_to_start = Auction.objects.filter(started=False, finished=False)
     for auction in auctions_to_start:
         if now < auction.start_time:
@@ -23,6 +36,7 @@ def handle_auctions():
         auction.started = True
         auction.save()
 
+    # Check auctions scheduled to finish
     auctions_to_finish = Auction.objects.filter(finished=False, started=True)
     for auction in auctions_to_finish:
         if now < auction.end_time:
@@ -41,6 +55,12 @@ def handle_auctions():
 
 
 def close_auction_group(auction):
+    """
+    Closes the WebSocket group associated with a finished auction.
+
+    :param auction: The Auction instance for which the WebSocket group should be closed.
+    :return: None
+    """
     auction_group_name = get_group_name(auction.id)
     channel_layer = get_channel_layer()
     return channel_layer.group_send(auction_group_name, {"type": "close_channel", "mess": "finish"})
@@ -48,8 +68,10 @@ def close_auction_group(auction):
 
 def start():
     """
-    Start the scheduler and wait until an auction has started or finished.
-    :return:
+    Initializes the scheduler and starts monitoring auction events.
+    This function sets up the scheduler to execute the handle_auctions function periodically.
+
+    :return: None
     """
     scheduler = BackgroundScheduler()
     scheduler.add_job(handle_auctions, IntervalTrigger(seconds=1), name="Start and finish auctions", jobstore="default")

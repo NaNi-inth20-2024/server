@@ -27,20 +27,32 @@ class AuctionRunningException(APIException):
 
 
 class AuctionNotStartedException(APIException):
+    """
+    Exception raised when attempting an action on an auction that has not yet started.
+    """
     status_code = status.HTTP_409_CONFLICT
     default_detail = "Auction is still not started"
 
 
 class AuctionNotActiveException(APIException):
+    """
+    Exception raised when attempting an action on an inactive auction.
+    """
     status_code = status.HTTP_409_CONFLICT
     default_detail = "Auction is inactive"
 
 
 class AuctionNotHasWinnerException(APIException):
-    status = status.HTTP_404_NOT_FOUND
+    """
+    Exception raised when attempting to retrieve a winner for an auction that has no winner.
+    """
+    status_code = status.HTTP_404_NOT_FOUND
     default_detail = "Auction has no winner"
 
 
 class WsAuthException(APIException):
-    status = status.HTTP_403_FORBIDDEN
-    default_detail = "You are not register"
+    """
+    Exception raised when WebSocket authentication fails.
+    """
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = "You are not registered"

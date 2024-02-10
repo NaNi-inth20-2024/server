@@ -123,7 +123,6 @@ class AuctionViewSet(viewsets.ModelViewSet):
 class BidViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows for bid list and view.
-    Bids cannot be edited when the auction is already started or finished
     """
 
     queryset = Bid.objects.all()
@@ -132,6 +131,10 @@ class BidViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class AuctionPhotoViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows for auction photo list and view.
+    """
+
     queryset = AuctionPhoto.objects.all()
     serializer_class = AuctionPhotoSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuctionAuthorOrReadOnly]

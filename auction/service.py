@@ -8,13 +8,27 @@ from auction.helpers.validators import auction_validator, bid_validator
 from auction.models import Auction, Bid
 from auction.serializers import BidSerializer
 from authentication.service import auth_service
+from django.contrib.auth.models import User
 
 
 class AsyncAuctionService:
+    """
+    Service class for handling asynchronous operations related to auctions.
+    """
+
     auction_validator = auction_validator
     bid_validator = bid_validator
 
     async def make_bid(self, bid, author, auction_id):
+        """
+        Method to make a bid in auction if all assertions is valid.
+        :param bid: Dictionary containing bid data.
+        :param author: The user making the bid.
+        :param auction_id: The ID of the auction for which the bid is made.
+        :return: The created bid object.
+        :raise: This method can raise various exceptions if bid validation fails.
+        """
+
         serializer = BidSerializer(data=bid)
         await database_sync_to_async(serializer.is_valid)(raise_exception=True)
         auction = await self.get_valid_auction(auction_id)
@@ -34,6 +48,15 @@ class AsyncAuctionService:
         return await database_sync_to_async(serializer.save)(author=author, auction=auction)
 
     async def get_bids(self, auction_id, limit, offset, base_url):
+        """
+        Method to get bids asynchronously.
+        :param auction_id: The ID of the auction for which bids are retrieved.
+        :param limit: The maximum number of bids per page.
+        :param offset: The offset for pagination.
+        :param base_url: The base URL used for generating next and previous page URLs.
+        :return: A dictionary containing paginated bid data.
+        """
+
         all_bids = await database_sync_to_async(
             lambda: Bid.objects.filter(auction_id=auction_id).order_by("-created"))()
         paginator = Paginator(all_bids, limit)
@@ -43,15 +66,35 @@ class AsyncAuctionService:
         return create_paginated_dict(paginator, page_obj, ser_bids, limit, base_url)
 
     async def get_valid_auction(self, auction_id):
+        """
+        Method to get a valid auction asynchronously.
+        :param auction_id: The ID of the auction to validate.
+        :return: The validated auction object.
+        :raise: This method can raise an exception if the auction is not valid.
+        """
+
         auction = await self.get_auction(auction_id)
         self.auction_validator.is_valid_or_raise(auction)
         return auction
 
     @database_sync_to_async
     def get_auction(self, auction_id):
+        """
+        Method to retrieve an auction asynchronously.
+        :param auction_id: The ID of the auction to retrieve.
+        :return: The retrieved auction object.
+        """
+
         return Auction.objects.get(pk=auction_id)
 
     async def get_winner(self, auction_id):
+        """
+        Method to get the winner of an auction asynchronously.
+        :param auction_id: The ID of the auction for which to retrieve the winner.
+        :return: The winning bid object.
+        :raise: This method can raise an exception if the auction has no winner.
+        """
+
         auction = await self.get_auction(auction_id)
         self.auction_validator.is_finished_or_raise(auction)
         winner_bid = await database_sync_to_async(
@@ -64,10 +107,19 @@ class AsyncAuctionService:
 
 
 class AsyncUserService:
+    """
+    Service class for handling asynchronous user operations.
+    """
+
     auth_service = auth_service
 
     @database_sync_to_async
-    def get_user(self, headers):
+    def get_user(self, headers) -> User:
+        """
+        Method to retrieve a user asynchronously.
+        :param headers: Dictionary containing request headers.
+        :return: The retrieved user object.
+        """
         return self.auth_service.token_to_user(headers)
 
 
