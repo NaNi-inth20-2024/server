@@ -1,11 +1,9 @@
-from django.contrib.auth import get_user_model
 from django_filters.rest_framework import FilterSet
 
 from .models import Auction
 
 
 class AuctionFilter(FilterSet):
-
     class Meta:
         model = Auction
         fields = {
