@@ -39,3 +39,8 @@ class AuctionNotActiveException(APIException):
 class AuctionNotHasWinnerException(APIException):
     status = status.HTTP_404_NOT_FOUND
     default_detail = "Auction has no winner"
+
+
+class WsAuthException(APIException):
+    status = status.HTTP_403_FORBIDDEN
+    default_detail = "You are not register"

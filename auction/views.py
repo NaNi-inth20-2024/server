@@ -1,20 +1,14 @@
-from drf_spectacular.utils import extend_schema
 from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets
+from drf_spectacular.utils import extend_schema
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.permissions import IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from auction.filters import AuctionFilter
-from auction.helpers.models import get_latest_bid_where_auction_id
 from auction.helpers.validators import auction_validator, bid_validator
-from auction.models import Auction, Bid
-from auction.serializers import AuctionSerializer, BidSerializer
-from charityAuctionProject.permissions import IsAuthorOrReadAndCreateOnly
 from auction.models import Auction, AuctionPhoto, Bid
 from auction.serializers import AuctionPhotoSerializer, AuctionSerializer, BidSerializer
 from charityAuctionProject.permissions import IsAuctionAuthorOrReadOnly, IsAuthorOrReadAndCreateOnly
@@ -98,12 +92,21 @@ class AuctionViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         auction = self.get_object()
         self.validator.is_not_started_or_raise(auction)
-        self.update(request, *args, **kwargs)
+        super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         auction = self.get_object()
         self.validator.is_not_started_or_raise(auction)
-        self.destroy(request, *args, **kwargs)
+        super().destroy(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        author_username = request.user
+        author = User.objects.get(username=author_username)
+        serializer.save(author=author)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     @action(detail=True, url_path="bids", name="get bids by auction id")
     def get_bids(self, request, pk):

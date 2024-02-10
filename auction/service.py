@@ -13,10 +13,10 @@ class AsyncAuctionService:
     auction_validator = auction_validator
     bid_validator = bid_validator
 
-    async def make_bid(self, bid):
+    async def make_bid(self, bid, author, auction_id):
         serializer = BidSerializer(data=bid)
         await database_sync_to_async(serializer.is_valid)(raise_exception=True)
-        auction = await self.get_valid_auction(bid["auction"])
+        auction = await self.get_valid_auction(auction_id)
         bid = await database_sync_to_async(lambda: serializer.validated_data)()
         price = bid["price"]
         self.bid_validator.is_price_more_then_initial(auction, price)
@@ -27,11 +27,14 @@ class AsyncAuctionService:
 
         price_gap = price - latest_price
         self.bid_validator.is_great_then_gap_or_raise(auction, price_gap)
-        return await database_sync_to_async(serializer.save)()
+        if latest_bid:
+            latest_bid.leader = False
+            await database_sync_to_async(latest_bid.save)()
+        return await database_sync_to_async(serializer.save)(author=author, auction=auction)
 
     async def get_bids(self, auction_id, limit, offset, base_url):
         all_bids = await database_sync_to_async(
-            lambda: Bid.objects.filter(auction_id=auction_id).order_by("created"))()
+            lambda: Bid.objects.filter(auction_id=auction_id).order_by("-created"))()
         paginator = Paginator(all_bids, limit)
         page_number = (offset // limit) + 1
         page_obj = await sync_to_async(lambda: paginator.get_page(page_number))()
