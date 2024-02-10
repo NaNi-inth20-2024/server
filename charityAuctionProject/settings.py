@@ -22,6 +22,7 @@ ALLOWED_HOSTS = [
     f"{SERVER_IP}",
     "127.0.0.1",
     "localhost",
+    "20.82.148.177"
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
