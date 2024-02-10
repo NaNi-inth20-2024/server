@@ -1,22 +1,24 @@
 import os
 from datetime import timedelta
 from pathlib import Path
-
-from dotenv import dotenv_values
-
 from .settings_local import DEBUG
+from environ import Env
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-CONFIG = dotenv_values(BASE_DIR / ".env")
+env = Env()
+env_file_path = os.path.join(BASE_DIR, "../.env")
+if os.path.exists(env_file_path):
+    env.read_env(env_file=env_file_path)
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = CONFIG["DJANGO_SECRET_KEY"]
+SECRET_KEY = env.str("DJANGO_SECRET_KEY")
 
-DOMAIN = CONFIG["DOMAIN"]
-SERVER_IP = CONFIG["SERVER_IP"]
-SERVER_PORT = CONFIG["SERVER_PORT"]
+DOMAIN = env.str("DOMAIN")
+SERVER_IP = env.str("SERVER_IP")
+SERVER_PORT = env.str("SERVER_PORT")
 
 ALLOWED_HOSTS = [
     f"{SERVER_IP}",
@@ -85,7 +87,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [(CONFIG["REDIS_HOST"], int(CONFIG["REDIS_PORT"]))],
+            "hosts": [env.str("REDIS_HOST"), int(env.str("REDIS_PORT"))],
         },
     },
 }
@@ -139,11 +141,11 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": CONFIG["DB_NAME"],
-        "USER": CONFIG["DB_USER"],
-        "PASSWORD": CONFIG["DB_PASSWORD"],
-        "HOST": CONFIG["DB_HOST"],
-        "PORT": CONFIG["DB_PORT"],
+        "NAME": env.str("DB_NAME"),
+        "USER": env.str("DB_USER"),
+        "PASSWORD": env.str("DB_PASSWORD"),
+        "HOST": env.str("DB_HOST"),
+        "PORT": env.str("DB_PORT"),
     }
 }
 

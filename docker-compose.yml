@@ -1,0 +1,74 @@
+services:
+  purple-auction:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - ${SERVER_PORT}
+    container_name: backend
+    volumes:
+      - backend_data:/charityAuctionProject
+      - static_volume:/charityAuctionProject/staticfiles-cdn
+    command: uvicorn charityAuctionProject.asgi:application --host ${SERVER_IP} --port ${SERVER_PORT}
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: charityAuctionProject.settings
+      POSTGRES_HOST: ${DB_HOST}
+      POSTGRES_PORT: ${DB_PORT}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16.1-alpine3.18
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ../2. Init Database:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 4G
+
+  redis:
+    image: redis:7.0.11-alpine
+    container_name: cache
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    command: redis-server --loglevel warning
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: 'nginx'
+    volumes:
+      - static_volume:/home/app/web/staticfiles
+    ports:
+      - 8000:80
+    depends_on:
+      - purple-auction
+
+volumes:
+  db_data:
+  backend_data:
+  static_volume:
