@@ -30,6 +30,7 @@ class Bid(models.Model):
     author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
+    leader = models.BooleanField(default=True)
     won = models.BooleanField(default=False)
 
     class Meta:

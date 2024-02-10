@@ -11,11 +11,19 @@ from auction.models import MIN_AUCTION_DURATION, Auction, AuctionPhoto, Bid
 _logger = logging.getLogger(__name__)
 
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "email"]
+
+
 class AuctionSerializer(serializers.ModelSerializer):
     """
     Auction serializer class.
     Validates start and finish time to not be the same.
     """
+
+    author = UserSerializer(many=False, read_only=True)
 
     class Meta:
         model = Auction
@@ -32,7 +40,7 @@ class AuctionSerializer(serializers.ModelSerializer):
             "end_time",
             "active",
         ]
-        read_only_fields = ["started", "finished", "id"]
+        read_only_fields = ["started", "finished", "id, author"]
 
     def validate(self, data):
         """
@@ -69,11 +77,10 @@ class AuctionSerializer(serializers.ModelSerializer):
 
         return instance
 
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["id", "username", "email"]
+    def create(self, validated_data):
+        author = validated_data.pop("author")
+        bid = Auction.objects.create(author=author, **validated_data)
+        return bid
 
 
 class AuctionPhotoSerializer(serializers.ModelSerializer):
@@ -116,14 +123,15 @@ class AuctionPhotoSerializer(serializers.ModelSerializer):
 
 class BidSerializer(serializers.ModelSerializer):
     author = UserSerializer(many=False, read_only=True)
-    author_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
+    auction = AuctionSerializer(many=False, read_only=True)
 
     class Meta:
         model = Bid
-        fields = ["id", "price", "author", "author_id", "auction", "won", "created"]
-        read_only_fields = ["created", "won"]
+        fields = ["id", "price", "author", "auction", "won", "created", "leader"]
+        read_only_fields = ["created", "won", "leader"]
 
     def create(self, validated_data):
-        author = validated_data.pop("author_id")
-        bid = Bid.objects.create(author=author, **validated_data)
+        author = validated_data.pop("author")
+        auction = validated_data.pop("auction")
+        bid = Bid.objects.create(author=author, auction=auction, **validated_data)
         return bid
