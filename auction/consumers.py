@@ -44,6 +44,8 @@ class AuctionConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_add(self.auction_group_name, self.channel_name)
             await self.accept()
             bids = await self.auction_service.get_bids(self.auction_id, limit, offset, url)
+            higher_bids = await self.auction_service.get_users_highest_bids(self.auction_id)
+            bids["highest_bids"] = higher_bids
             await self.send(text_data=json.dumps(bids))
         except (APIException, Auction.DoesNotExist) as e:
             await self.accept()

@@ -65,6 +65,18 @@ class AsyncAuctionService:
         ser_bids = await sync_to_async(lambda: BidSerializer(page_obj.object_list, many=True).data)()
         return create_paginated_dict(paginator, page_obj, ser_bids, limit, base_url)
 
+    @database_sync_to_async
+    def get_users_highest_bids(self, pk):
+        bids = Bid.objects.filter(auction_id=pk).order_by("-created")
+        author_ids = []
+        highest_bids = []
+        for bid in bids:
+            author_id = bid.author.id
+            if author_id not in author_ids:
+                author_ids.append(author_id)
+                highest_bids.append(BidSerializer(bid).data)
+        return highest_bids
+
     async def get_valid_auction(self, auction_id):
         """
         Method to get a valid auction asynchronously.

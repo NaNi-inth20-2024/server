@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db.models import Max
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, status
