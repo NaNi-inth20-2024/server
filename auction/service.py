@@ -120,7 +120,7 @@ class AsyncUserService:
         :param headers: Dictionary containing request headers.
         :return: The retrieved user object.
         """
-        return self.auth_service.token_to_user(headers)
+        return self.auth_service.header_to_user(headers)
 
 
 async_auction_service = AsyncAuctionService()
