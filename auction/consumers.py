@@ -35,9 +35,10 @@ class AuctionConsumer(AsyncWebsocketConsumer):
         Handles the WebSocket connection request.
         """
         try:
-            if not await self.get_user():
+            limit, offset, url, token = self.parse_parameters()
+            if not await self.user_service.get_user_by_token(token):
                 raise WsAuthException()
-            limit, offset, url = self.parse_parameters()
+
             await self.auction_service.get_valid_auction(self.auction_id)
             self.auction_group_name = get_group_name(self.auction_id)
             await self.channel_layer.group_add(self.auction_group_name, self.channel_name)
@@ -57,8 +58,13 @@ class AuctionConsumer(AsyncWebsocketConsumer):
         query_params = parse_qs(self.scope['query_string'].decode())
         limit = int(query_params.get('limit', [DEFAULT_LIMIT])[0])
         offset = int(query_params.get('offset', [0])[0])
+        token = query_params.get('token', [""])[0]
         url = f"ws:/{self.scope['path']}"
-        return limit, offset, url
+        return limit, offset, url, token
+
+    def parse_token(self):
+        query_params = parse_qs(self.scope['query_string'].decode())
+        return query_params.get('token', [""])[0]
 
     async def disconnect(self, close_code):
         """
@@ -76,7 +82,8 @@ class AuctionConsumer(AsyncWebsocketConsumer):
         Handles the incoming WebSocket message.
         """
         try:
-            author = await self.get_user()
+            token = self.parse_token()
+            author = await self.user_service.get_user_by_token(token)
             if not author:
                 raise WsAuthException()
             data = json.loads(text_data)
@@ -111,9 +118,3 @@ class AuctionConsumer(AsyncWebsocketConsumer):
         bid = event["bid"]
         return self.send(text_data=bid)
 
-    def get_user(self):
-        """
-        Retrieves the user associated with the WebSocket connection.
-        """
-        headers = dict(self.scope.get('headers', []))
-        return self.user_service.get_user(headers)

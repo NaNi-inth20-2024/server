@@ -122,6 +122,16 @@ class AsyncUserService:
         """
         return self.auth_service.header_to_user(headers)
 
+    @database_sync_to_async
+    def get_user_by_token(self, token) -> User:
+        """
+        Method to retrieve a user by token asynchronously.
+        :param token: jwt token of the user.
+        :return: The retrieved user object.
+        """
+
+        return self.auth_service.token_to_user(token)
+
 
 async_auction_service = AsyncAuctionService()
 async_user_service = AsyncUserService()
