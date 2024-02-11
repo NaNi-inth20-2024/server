@@ -1,17 +1,13 @@
-import json
-
-from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
-from authentication.service import auth_service
 
 from auction.serializers import UserSerializer
+from authentication.service import auth_service
 from .serializers import RegisterSerializer
 
 
@@ -55,3 +51,12 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             }
             response.data = data
         return response
+
+
+class UserInfoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        user_data = UserSerializer(user).data
+        return Response(user_data)
