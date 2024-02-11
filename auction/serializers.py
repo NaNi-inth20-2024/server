@@ -58,10 +58,17 @@ class AuctionPhotoSerializer(serializers.ModelSerializer):
 class AuctionSerializer(serializers.ModelSerializer):
     author = UserSerializer(many=False, read_only=True)
     images = serializers.SerializerMethodField()
+    leader_bid = serializers.SerializerMethodField()
 
     def get_images(self, obj):
         images = AuctionPhoto.objects.filter(auction=obj)
         return AuctionPhotoSerializer(images, many=True, read_only=True).data
+
+    def get_leader_bid(self, obj):
+        leader_bid = Bid.objects.filter(auction=obj, leader=True).first()
+        if leader_bid:
+            return BidSerializer(leader_bid).data
+        return None
 
     class Meta:
         model = Auction
@@ -78,6 +85,8 @@ class AuctionSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "active",
+            "leader_bid"
+
         ]
         read_only_fields = ["started", "finished", "id", "author", "images",]
 
@@ -129,11 +138,10 @@ class AuctionSerializer(serializers.ModelSerializer):
 
 class BidSerializer(serializers.ModelSerializer):
     author = UserSerializer(many=False, read_only=True)
-    auction = AuctionSerializer(many=False, read_only=True)
 
     class Meta:
         model = Bid
-        fields = ["id", "price", "author", "auction", "won", "created", "leader"]
+        fields = ["id", "price", "author", "won", "created", "leader"]
         read_only_fields = ["created", "won", "leader"]
 
     def create(self, validated_data):
